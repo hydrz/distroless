@@ -41,8 +41,14 @@ jobs:
           docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/python2.7:debug docker.io/${{ github.repository }}:python2.7-debug
 
           # nodejs
-          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:latest docker.io/${{ github.repository }}:nodejs
-          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:debug docker.io/${{ github.repository }}:nodejs-debug
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:latest docker.io/hydrz/distroless:nodejs
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:debug docker.io/hydrz/distroless:nodejs-debug
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:10 docker.io/hydrz/distroless:nodejs-10
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:10-debug docker.io/hydrz/distroless:nodejs-10-debug
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:12 docker.io/hydrz/distroless:nodejs-12
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:12-debug docker.io/hydrz/distroless:nodejs-12-debug
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:14 docker.io/hydrz/distroless:nodejs-14
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:14-debug docker.io/hydrz/distroless:nodejs-14-debug
 
           # java11
           docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/java:11 docker.io/${{ github.repository }}:java-11
