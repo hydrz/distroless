@@ -28,7 +28,7 @@ jobs:
           _stages="latest nonroot debug debug-nonroot"
           for stack in $_stacks; do 
               for stage in $_stages; do
-                  tag="-$stage"
+                  tag=$([ "$stage" == latest ] && echo "$stack" || echo "$stack-$stage")
                   docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/$stack:$stage docker.io/${{ github.repository }}:$tag
               done
           done
