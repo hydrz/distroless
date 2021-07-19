@@ -19,70 +19,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: static-debian10
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/static-debian10:latest
-          dst: |
-            docker.io/${{ github.repository }}:latest
-            docker.io/${{ github.repository }}:static
-            docker.io/${{ github.repository }}:static-debian10
-
-      - name: static-debian10-nonroot
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/static-debian10:nonroot
-          dst: |
-            docker.io/${{ github.repository }}:nonroot
-            docker.io/${{ github.repository }}:static-nonroot
-            docker.io/${{ github.repository }}:static-debian10-nonroot
-
-      - name: static-debian10-debug
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/static-debian10:debug
-          dst: |
-            docker.io/${{ github.repository }}:debug
-            docker.io/${{ github.repository }}:static-debug
-            docker.io/${{ github.repository }}:static-debian10-debug
-
-      - name: static-debian10-debug-nonroot
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/static-debian10:debug-nonroot
-          dst: |
-            docker.io/${{ github.repository }}:debug-nonroot
-            docker.io/${{ github.repository }}:static-debug-nonroot
-            docker.io/${{ github.repository }}:static-debian10-debug-nonroot
-
-      - name: base-debian10
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/base-debian10:latest
-          dst: |
-            docker.io/${{ github.repository }}:base
-            docker.io/${{ github.repository }}:base-debian10
-
-      - name: base-debian10-nonroot
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/base-debian10:nonroot
-          dst: |
-            docker.io/${{ github.repository }}:base-nonroot
-            docker.io/${{ github.repository }}:base-debian10-nonroot
-
-      - name: base-debian10-debug
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/base-debian10:debug
-          dst: |
-            docker.io/${{ github.repository }}:base-debug
-            docker.io/${{ github.repository }}:base-debian10-debug
-
-      - name: base-debian10-debug-nonroot
-        uses: akhilerm/tag-push-action@v1.0.0
-        with:
-          src: gcr.io/distroless/base-debian10:debug-nonroot
-          dst: |
-            docker.io/${{ github.repository }}:base-debug-nonroot
-            docker.io/${{ github.repository }}:base-debian10-debug-nonroot
+      - name: Copy Images
+        run: |
+          _stacks = "static base"
+          _stages = "latest nonroot debug debug-nonroot"
+          for stacks in $_stacks; do 
+              for stage in $_stages; do
+               /usr/bin/docker run --rm -i -v /home/runner/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/$stacks-debian10:$stage docker.io/${{ github.repository }}:$stacks-$stage
+              done;
+          done
