@@ -34,7 +34,7 @@ jobs:
           done
 
           # default
-          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/$stack:latest docker.io/${{ github.repository }}:latest
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/static:latest docker.io/${{ github.repository }}:latest
 
           # python2.7
           docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/python2.7:latest docker.io/${{ github.repository }}:python2.7
