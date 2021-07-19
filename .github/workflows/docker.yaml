@@ -21,10 +21,10 @@ jobs:
 
       - name: Copy Images
         run: |
-          _stacks = "static base"
-          _stages = "latest nonroot debug debug-nonroot"
-          for stacks in $_stacks; do 
+          _stacks="static base"
+          _stages="latest nonroot debug debug-nonroot"
+          for stack in $_stacks; do 
               for stage in $_stages; do
-               /usr/bin/docker run --rm -i -v /home/runner/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/$stacks-debian10:$stage docker.io/${{ github.repository }}:$stacks-$stage
-              done;
+                  docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/$stack-debian10:$stage docker.io/${{ github.repository }}:$stack-$stage
+              done
           done
