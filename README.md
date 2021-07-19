@@ -3,6 +3,8 @@
 
 > 为 gcr.io 国内不能访问的问题，将镜像拷贝一份到Docker Hub上
 
+详细信息见 [https://github.com/GoogleContainerTools/distroless](https://github.com/GoogleContainerTools/distroless)
+
 ## 镜像列表
 - static
   - [hydrz/distroless:static](https://github.com/GoogleContainerTools/distroless/blob/main/static/README.md)
