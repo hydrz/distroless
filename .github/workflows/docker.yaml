@@ -31,4 +31,6 @@ jobs:
         with:
           src: gcr.io/distroless/static-debian10:latest
           dst: |
-            docker.io/hydrz/distroless:static:latest
+            docker.io/hydrz/distroless:latest
+            docker.io/hydrz/distroless:static
+            docker.io/hydrz/distroless:static-debian10
