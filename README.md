@@ -1,7 +1,7 @@
 # distroless [![Docker](https://github.com/hydrz/distroless/actions/workflows/docker.yaml/badge.svg)](https://github.com/hydrz/distroless/actions/workflows/docker.yaml)
 🥑  Language focused docker images, minus the operating system.  
 
-> 为 gcr.io 国内不能访问的问题，将镜像拷贝一份到Docker Hub上
+> 为解决 gcr.io 国内不能访问的问题，将镜像拷贝一份到Docker Hub上
 
 详细信息见 [https://github.com/GoogleContainerTools/distroless](https://github.com/GoogleContainerTools/distroless)
 
