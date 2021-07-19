@@ -31,65 +31,65 @@ jobs:
         with:
           src: gcr.io/distroless/static-debian10:latest
           dst: |
-            docker.io/hydrz/distroless:latest
-            docker.io/hydrz/distroless:static
-            docker.io/hydrz/distroless:static-debian10
+            docker.io/${{ github.repository }}:latest
+            docker.io/${{ github.repository }}:static
+            docker.io/${{ github.repository }}:static-debian10
 
       - name: static-debian10-nonroot
         uses: akhilerm/tag-push-action@v1.0.0
         with:
           src: gcr.io/distroless/static-debian10:nonroot
           dst: |
-            docker.io/hydrz/distroless:nonroot
-            docker.io/hydrz/distroless:static-nonroot
-            docker.io/hydrz/distroless:static-debian10-nonroot
+            docker.io/${{ github.repository }}:nonroot
+            docker.io/${{ github.repository }}:static-nonroot
+            docker.io/${{ github.repository }}:static-debian10-nonroot
 
       - name: static-debian10-debug
         uses: akhilerm/tag-push-action@v1.0.0
         with:
           src: gcr.io/distroless/static-debian10:debug
           dst: |
-            docker.io/hydrz/distroless:debug
-            docker.io/hydrz/distroless:static-debug
-            docker.io/hydrz/distroless:static-debian10-debug
+            docker.io/${{ github.repository }}:debug
+            docker.io/${{ github.repository }}:static-debug
+            docker.io/${{ github.repository }}:static-debian10-debug
 
       - name: static-debian10-debug-nonroot
         uses: akhilerm/tag-push-action@v1.0.0
         with:
           src: gcr.io/distroless/static-debian10:debug-nonroot
           dst: |
-            docker.io/hydrz/distroless:debug-nonroot
-            docker.io/hydrz/distroless:static-debug-nonroot
-            docker.io/hydrz/distroless:static-debian10-debug-nonroot
+            docker.io/${{ github.repository }}:debug-nonroot
+            docker.io/${{ github.repository }}:static-debug-nonroot
+            docker.io/${{ github.repository }}:static-debian10-debug-nonroot
 
       - name: base-debian10
         uses: akhilerm/tag-push-action@v1.0.0
         with:
           src: gcr.io/distroless/base-debian10:latest
           dst: |
-            docker.io/hydrz/distroless:base
-            docker.io/hydrz/distroless:base-debian10
+            docker.io/${{ github.repository }}:base
+            docker.io/${{ github.repository }}:base-debian10
 
       - name: base-debian10-nonroot
         uses: akhilerm/tag-push-action@v1.0.0
         with:
           src: gcr.io/distroless/base-debian10:nonroot
           dst: |
-            docker.io/hydrz/distroless:base-nonroot
-            docker.io/hydrz/distroless:base-debian10-nonroot
+            docker.io/${{ github.repository }}:base-nonroot
+            docker.io/${{ github.repository }}:base-debian10-nonroot
 
       - name: base-debian10-debug
         uses: akhilerm/tag-push-action@v1.0.0
         with:
           src: gcr.io/distroless/base-debian10:debug
           dst: |
-            docker.io/hydrz/distroless:base-debug
-            docker.io/hydrz/distroless:base-debian10-debug
+            docker.io/${{ github.repository }}:base-debug
+            docker.io/${{ github.repository }}:base-debian10-debug
 
       - name: base-debian10-debug-nonroot
         uses: akhilerm/tag-push-action@v1.0.0
         with:
           src: gcr.io/distroless/base-debian10:debug-nonroot
           dst: |
-            docker.io/hydrz/distroless:base-debug-nonroot
-            docker.io/hydrz/distroless:base-debian10-debug-nonroot
+            docker.io/${{ github.repository }}:base-debug-nonroot
+            docker.io/${{ github.repository }}:base-debian10-debug-nonroot
