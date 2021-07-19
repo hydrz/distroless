@@ -7,7 +7,7 @@
 
 ## 镜像列表
 - static
-  - [hydrz/distroless:static](https://github.com/GoogleContainerTools/distroless/blob/main/static/README.md)
+  - [hydrz/distroless:static](https://github.com/GoogleContainerTools/distroless/blob/main/static/README.md) (latest)
   - [hydrz/distroless:static-nonroot](https://github.com/GoogleContainerTools/distroless/blob/main/static/README.md)
   - [hydrz/distroless:static-debug](https://github.com/GoogleContainerTools/distroless/blob/main/static/README.md)
   - [hydrz/distroless:static-debug-nonroot](https://github.com/GoogleContainerTools/distroless/blob/main/static/README.md)
