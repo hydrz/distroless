@@ -21,39 +21,32 @@ jobs:
 
       - name: Copy Images
         run: |
+          src_project="gcr.io/distroless"
+          repo_copy="tonistiigi/repo-copy:latest"
+          config="$HOME/.docker/config.json"
           _stacks="static base cc python3 java"
           _stages="latest nonroot debug debug-nonroot"
           for stack in $_stacks; do 
               for stage in $_stages; do
                   tag="-$stage"
                   [ "$tag" = latest ]; tag=""
-                  echo "docker.io/${{ github.repository }}:$tag"
-                  docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/$stack:$stage docker.io/${{ github.repository }}:$tag
+                  docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/$stack:$stage docker.io/${{ github.repository }}:$tag
               done
           done
 
           # default
-          echo "docker.io/${{ github.repository }}:latest"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/$stack:latest docker.io/${{ github.repository }}:latest
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/$stack:latest docker.io/${{ github.repository }}:latest
 
           # python2.7
-          echo "docker.io/${{ github.repository }}:python2.7"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/python2.7:latest docker.io/${{ github.repository }}:python2.7
-          echo "docker.io/${{ github.repository }}:python2.7-debug"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/python2.7:debug docker.io/${{ github.repository }}:python2.7-debug
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/python2.7:latest docker.io/${{ github.repository }}:python2.7
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/python2.7:debug docker.io/${{ github.repository }}:python2.7-debug
 
           # nodejs
-          echo "docker.io/${{ github.repository }}:nodejs"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/nodejs:latest docker.io/${{ github.repository }}:nodejs
-          echo "docker.io/${{ github.repository }}:nodejs-debug"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/nodejs:debug docker.io/${{ github.repository }}:nodejs-debug
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:latest docker.io/${{ github.repository }}:nodejs
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/nodejs:debug docker.io/${{ github.repository }}:nodejs-debug
 
           # java11
-          echo "docker.io/${{ github.repository }}:java-11"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/java:11 docker.io/${{ github.repository }}:java-11
-          echo "docker.io/${{ github.repository }}:java-11-nonroot"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/java:11-nonroot docker.io/${{ github.repository }}:java-11-nonroot
-          echo "docker.io/${{ github.repository }}:java-11-debug"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/java:11-debug docker.io/${{ github.repository }}:java-11-debug
-          echo "docker.io/${{ github.repository }}:java-11-debug-nonroot"
-          docker run --rm -i -v $HOME/.docker/config.json:/root/.docker/config.json tonistiigi/repo-copy:latest gcr.io/distroless/java:11-debug-nonroot docker.io/${{ github.repository }}:java-11-debug-nonroot
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/java:11 docker.io/${{ github.repository }}:java-11
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/java:11-nonroot docker.io/${{ github.repository }}:java-11-nonroot
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/java:11-debug docker.io/${{ github.repository }}:java-11-debug
+          docker run --rm -i -v $config:/root/.docker/config.json $repo_copy $src_project/java:11-debug-nonroot docker.io/${{ github.repository }}:java-11-debug-nonroot
