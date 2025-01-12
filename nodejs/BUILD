@@ -1,38 +1,59 @@
+load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("//:checksums.bzl", "ARCHITECTURES")
+load("//base:distro.bzl", "DISTROS")
+
 package(default_visibility = ["//visibility:public"])
 
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//contrib:test.bzl", "container_test")
-load("//base:distro.bzl", DISTROS = "LANGUAGE_DISTROS")
-load("//:checksums.bzl", ARCHITECTURES = "BASE_ARCHITECTURES")
+NODEJS_MAJOR_VERISONS = ("18", "20", "22")
 
-NODEJS_MAJOR_VERISONS = ("14", "16", "18")
+MODE = [
+    "",
+    "_debug",
+]
+
+USER = [
+    "root",
+    "nonroot",
+]
 
 [
-    container_image(
+    oci_image_index(
+        name = "nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + distro,
+        images = [
+            "nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro
+            for arch in ARCHITECTURES
+        ],
+    )
+    for mode in MODE
+    for user in USER
+    for major_version in NODEJS_MAJOR_VERISONS
+    for distro in DISTROS
+]
+
+[
+    oci_image(
         name = "nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro,
-        architecture = arch,
         base = ("//cc:cc" if (not ("debug" in mode)) else "//cc:debug") + "_" + user + "_" + arch + "_" + distro,
         entrypoint = ["/nodejs/bin/node"],
-        tars = ["@nodejs" + major_version + "_" + arch + "//:tar"],
+        tars = [
+            "@nodejs" + major_version + "_" + arch,
+        ],
     )
-    for mode in [
-        "",
-        "_debug",
-    ]
-    for user in [
-        "root",
-        "nonroot",
-    ]
+    for mode in MODE
+    for user in USER
     for major_version in NODEJS_MAJOR_VERISONS
     for arch in ARCHITECTURES
     for distro in DISTROS
 ]
 
 [
-    container_test(
+    container_structure_test(
         name = "nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro + "_test",
         configs = [
             "testdata/nodejs" + major_version + ".yaml",
+            "testdata/check_headers.yaml",
             "testdata/check_npm.yaml",
         ],
         image = "nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro,
@@ -41,44 +62,35 @@ NODEJS_MAJOR_VERISONS = ("14", "16", "18")
             "manual",
         ],
     )
-    for mode in [
-        "",
-        "_debug",
-    ]
-    for user in [
-        "root",
-        "nonroot",
-    ]
+    for mode in MODE
+    for user in USER
     for major_version in NODEJS_MAJOR_VERISONS
     for arch in ARCHITECTURES
     for distro in DISTROS
 ]
 
-exports_files([
-    "testdata/check_certificate.js",
-])
+pkg_tar(
+    name = "check_certificate",
+    srcs = ["testdata/check_certificate.js"],
+)
 
 [
-    container_image(
+    oci_image(
         name = "check_certificate_nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro,
         base = "nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro,
-        files = ["testdata/check_certificate.js"],
+        tars = [
+            ":check_certificate",
+        ],
     )
-    for mode in [
-        "",
-        "_debug",
-    ]
-    for user in [
-        "root",
-        "nonroot",
-    ]
+    for mode in MODE
+    for user in USER
     for major_version in NODEJS_MAJOR_VERISONS
     for arch in ARCHITECTURES
     for distro in DISTROS
 ]
 
 [
-    container_test(
+    container_structure_test(
         name = "check_certificate_nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro + "_test",
         configs = ["testdata/check_certificate.yaml"],
         image = "check_certificate_nodejs" + major_version + ("" if (not mode) else mode) + "_" + user + "_" + arch + "_" + distro,
@@ -87,14 +99,8 @@ exports_files([
             "manual",
         ],
     )
-    for mode in [
-        "",
-        "_debug",
-    ]
-    for user in [
-        "root",
-        "nonroot",
-    ]
+    for mode in MODE
+    for user in USER
     for major_version in NODEJS_MAJOR_VERISONS
     for arch in ARCHITECTURES
     for distro in DISTROS

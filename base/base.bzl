@@ -1,32 +1,76 @@
-# defines a function to replicate the container images for different distributions
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//contrib:test.bzl", "container_test")
-load("//cacerts:cacerts.bzl", "cacerts")
-load("//:checksums.bzl", "ARCHITECTURES")
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+"defines a function to replicate the container images for different distributions"
 
-NONROOT = 65532
+load("@container_structure_test//:defs.bzl", "container_structure_test")
+load("@rules_go//go:def.bzl", "go_binary")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("//:checksums.bzl", "ARCHITECTURES", "VARIANTS")
+load("//common:variables.bzl", "NONROOT")
+load("//private/util:deb.bzl", "deb")
 
-def deb_file(arch, distro, package):
-    return "@" + arch + "_" + distro + "_" + package + "//file"
+USER_VARIANTS = [("root", 0, "/"), ("nonroot", NONROOT, "/home/nonroot")]
 
-# Replicate everything for all distroless suffixes
-def distro_components(distro):
-    for arch in ARCHITECTURES:
-        cacerts(
-            name = "cacerts_" + arch + "_" + distro,
-            deb = deb_file(arch, distro, "ca-certificates"),
+def base_images(distro):
+    """Replicate everything for all distroless suffixes
+
+    Args:
+        distro: name of the distribution
+    """
+
+    # loop for multi-arch images
+    for (user, _, _) in USER_VARIANTS:
+        oci_image_index(
+            name = "static_" + user + "_" + distro,
+            images = [
+                "static_" + user + "_" + arch + "_" + distro
+                for arch in ARCHITECTURES
+            ],
         )
 
-        for (user, uid, workdir) in [("root", 0, "/"), ("nonroot", NONROOT, "/home/nonroot")]:
-            container_image(
+        oci_image_index(
+            name = "base_nossl_" + user + "_" + distro,
+            images = [
+                "base_nossl_" + user + "_" + arch + "_" + distro
+                for arch in ARCHITECTURES
+            ],
+        )
+
+        oci_image_index(
+            name = "base_" + user + "_" + distro,
+            images = [
+                "base_" + user + "_" + arch + "_" + distro
+                for arch in ARCHITECTURES
+            ],
+        )
+
+        oci_image_index(
+            name = "debug_" + user + "_" + distro,
+            images = [
+                "debug_" + user + "_" + arch + "_" + distro
+                for arch in ARCHITECTURES
+            ],
+        )
+
+        oci_image_index(
+            name = "base_nossl_debug_" + user + "_" + distro,
+            images = [
+                "base_nossl_debug_" + user + "_" + arch + "_" + distro
+                for arch in ARCHITECTURES
+            ],
+        )
+
+        oci_image_index(
+            name = "static_debug_" + user + "_" + distro,
+            images = [
+                "static_debug_" + user + "_" + arch + "_" + distro
+                for arch in ARCHITECTURES
+            ],
+        )
+
+    for arch in ARCHITECTURES:
+        for (user, uid, workdir) in USER_VARIANTS:
+            oci_image(
                 name = "static_" + user + "_" + arch + "_" + distro,
-                debs = [
-                    deb_file(arch, distro, "base-files"),
-                    deb_file(arch, distro, "netbase"),
-                    deb_file(arch, distro, "tzdata"),
-                ],
-                architecture = arch,
                 env = {
                     "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
                     # allows openssl to find the certificates by default
@@ -35,73 +79,69 @@ def distro_components(distro):
                     "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
                 },
                 tars = [
-                    ":passwd",
-                    ":group_tar",
-
+                    deb.package(arch, distro, "base-files"),
+                    deb.package(arch, distro, "netbase"),
+                    deb.package(arch, distro, "tzdata"),
+                    "//common:rootfs",
+                    "//common:passwd",
+                    "//common:home",
+                    "//common:group",
                     # Create /tmp, too many things assume it exists.
                     # tmp.tar has a /tmp with the correct permissions 01777
-                    # A tar is needed because at the moment there is no way to create a
-                    # directory with specific permissions.
-                    ":tmp.tar",
+                    "//common:tmp",
                     ":nsswitch.tar",
-                    "//os_release:os_release_" + distro + ".tar",
-                    ":cacerts_" + arch + "_" + distro + ".tar",
+                    "//common:os_release_" + distro,
+                    "//common:cacerts_" + distro + "_" + arch,
                 ],
                 user = "%d" % uid,
                 workdir = workdir,
+                os = "linux",
+                architecture = arch,
+                variant = VARIANTS.get(arch),
             )
 
-            container_image(
+            oci_image(
                 name = "base_nossl_" + user + "_" + arch + "_" + distro,
-                architecture = arch,
                 base = ":static_" + user + "_" + arch + "_" + distro,
-                debs = [
-                    deb_file(arch, distro, "libc6"),
+                tars = [
+                    deb.package(arch, distro, "libc6"),
                 ],
             )
 
-            container_image(
+            oci_image(
                 name = "base_" + user + "_" + arch + "_" + distro,
-                architecture = arch,
                 base = ":static_" + user + "_" + arch + "_" + distro,
-                debs = [
-                    deb_file(arch, distro, "libc6"),
-                    deb_file(arch, distro, "libssl1.1"),
-                    deb_file(arch, distro, "openssl"),
+                tars = [
+                    deb.package(arch, distro, "libc6"),
+                    deb.package(arch, distro, "libssl3"),
                 ],
             )
 
             # A debug image with busybox available.
-            container_image(
+            oci_image(
                 name = "debug_" + user + "_" + arch + "_" + distro,
-                architecture = arch,
                 base = ":base_" + user + "_" + arch + "_" + distro,
-                directory = "/",
                 entrypoint = ["/busybox/sh"],
-                env = {"PATH": "$$PATH:/busybox"},
-                tars = ["//experimental/busybox:busybox_" + arch + ".tar"],
+                env = {"PATH": "$PATH:/busybox"},
+                tars = ["//experimental/busybox:busybox_" + arch],
             )
 
             # A base_nossl debug image with busybox available.
-            container_image(
+            oci_image(
                 name = "base_nossl_debug_" + user + "_" + arch + "_" + distro,
-                architecture = arch,
                 base = ":base_nossl_" + user + "_" + arch + "_" + distro,
-                directory = "/",
                 entrypoint = ["/busybox/sh"],
-                env = {"PATH": "$$PATH:/busybox"},
-                tars = ["//experimental/busybox:busybox_" + arch + ".tar"],
+                env = {"PATH": "$PATH:/busybox"},
+                tars = ["//experimental/busybox:busybox_" + arch],
             )
 
             # A static debug image with busybox available.
-            container_image(
+            oci_image(
                 name = "static_debug_" + user + "_" + arch + "_" + distro,
-                architecture = arch,
                 base = ":static_" + user + "_" + arch + "_" + distro,
-                directory = "/",
                 entrypoint = ["/busybox/sh"],
-                env = {"PATH": "$$PATH:/busybox"},
-                tars = ["//experimental/busybox:busybox_" + arch + ".tar"],
+                env = {"PATH": "$PATH:/busybox"},
+                tars = ["//experimental/busybox:busybox_" + arch],
             )
 
         ##########################################################################################
@@ -116,17 +156,24 @@ def distro_components(distro):
             pure = "on",
         )
 
-        container_image(
-            name = "check_certs_image_" + arch + "_" + distro,
-            base = "//base:static_root_" + arch + "_" + distro,
-            files = [":check_certs_" + arch + "_" + distro],
+        pkg_tar(
+            name = "check_certs_" + arch + "_" + distro + "_tar",
+            srcs = ["check_certs_" + arch + "_" + distro],
             symlinks = {
                 "/check_certs": "check_certs_" + arch + "_" + distro,
             },
+        )
+
+        oci_image(
+            name = "check_certs_image_" + arch + "_" + distro,
+            base = "//base:static_root_" + arch + "_" + distro,
+            tars = [
+                ":check_certs_" + arch + "_" + distro + "_tar",
+            ],
             visibility = ["//visibility:private"],
         )
 
-        container_test(
+        container_structure_test(
             name = "static_" + arch + "_" + distro + "_test",
             configs = ["testdata/static.yaml"],
             image = ":check_certs_image_" + arch + "_" + distro,
@@ -134,26 +181,16 @@ def distro_components(distro):
         )
 
         ##########################################################################################
-        # Check that we can invoke openssl in the base image to check certificates.
-        ##########################################################################################
-        container_test(
-            name = "openssl_" + arch + "_" + distro + "_test",
-            configs = ["testdata/certs.yaml"],
-            image = ":base_root_" + arch + "_" + distro,
-            tags = ["manual", arch],
-        )
-
-        ##########################################################################################
         # Check for common base files.
         ##########################################################################################
-        container_test(
+        container_structure_test(
             name = "base_" + arch + "_" + distro + "_test",
             configs = ["testdata/base.yaml"],
             image = ":base_root_" + arch + "_" + distro,
             tags = ["manual", arch],
         )
 
-        container_test(
+        container_structure_test(
             name = "base_nossl_" + arch + "_" + distro + "_test",
             configs = ["testdata/base.yaml"],
             image = ":base_nossl_root_" + arch + "_" + distro,
@@ -163,21 +200,21 @@ def distro_components(distro):
         ##########################################################################################
         # Check for busybox
         ##########################################################################################
-        container_test(
+        container_structure_test(
             name = "debug_" + arch + "_" + distro + "_test",
             configs = ["testdata/debug.yaml"],
             image = ":debug_root_" + arch + "_" + distro,
             tags = ["manual", arch],
         )
 
-        container_test(
+        container_structure_test(
             name = "base_nossl_debug_" + arch + "_" + distro + "_test",
             configs = ["testdata/debug.yaml"],
             image = ":base_nossl_debug_root_" + arch + "_" + distro,
             tags = ["manual", arch],
         )
 
-        container_test(
+        container_structure_test(
             name = "static_debug_" + arch + "_" + distro + "_test",
             configs = ["testdata/debug.yaml"],
             image = ":static_debug_root_" + arch + "_" + distro,
@@ -187,35 +224,35 @@ def distro_components(distro):
         ##########################################################################################
         # Check the /etc/os-release contents.
         ##########################################################################################
-        container_test(
+        container_structure_test(
             name = "base_release_" + arch + "_" + distro + "_test",
             configs = ["testdata/" + distro + ".yaml"],
             image = ":base_root_" + arch + "_" + distro,
             tags = ["manual", arch],
         )
 
-        container_test(
+        container_structure_test(
             name = "base_nossl_release_" + arch + "_" + distro + "_test",
             configs = ["testdata/" + distro + ".yaml"],
             image = ":base_nossl_root_" + arch + "_" + distro,
             tags = ["manual", arch],
         )
 
-        container_test(
+        container_structure_test(
             name = "debug_release_" + arch + "_" + distro + "_test",
             configs = ["testdata/" + distro + ".yaml"],
             image = ":debug_root_" + arch + "_" + distro,
             tags = ["manual", arch],
         )
 
-        container_test(
+        container_structure_test(
             name = "static_release_" + arch + "_" + distro + "_test",
             configs = ["testdata/" + distro + ".yaml"],
             image = ":static_root_" + arch + "_" + distro,
             tags = ["manual", arch],
         )
 
-        container_test(
+        container_structure_test(
             name = "static_debug_release_" + arch + "_" + distro + "_test",
             configs = ["testdata/" + distro + ".yaml"],
             image = ":static_debug_root_" + arch + "_" + distro,
